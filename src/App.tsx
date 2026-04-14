@@ -47,7 +47,7 @@ export default function App() {
 
       <div className="w-[900px] max-w-[95%] p-6 rounded-2xl border border-purple-500/20 backdrop-blur-xl bg-[#121423]/70 shadow-[0_0_40px_rgba(124,58,237,0.3)]">
 
-        {/* HEADER */}
+  
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-xl tracking-wide">VoiceOS v2</h1>
 
@@ -57,13 +57,21 @@ export default function App() {
         </div>
 
         {/* ORB */}
-        <div className="flex justify-center my-6">
-          <div
-            className={`w-24 h-24 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 shadow-[0_0_40px_rgba(124,58,237,0.6)] transition-all ${orbStyle[status]}`}
-          />
+        <div className="flex justify-center my-8 relative">
+          <div className={`absolute w-40 h-40 rounded-full blur-2xl opacity-40
+            ${status === "Listening" ? "bg-blue-500 animate-pulse" : ""}
+            ${status === "Thinking" ? "bg-purple-500 animate-pulse" : ""}
+          `} />
+              <div
+                className={`w-24 h-24 rounded-full bg-gradient-to-br from-purple-500 via-blue-500 to-cyan-400 shadow-[0_0_50px_rgba(124,58,237,0.7)] transition-all duration-300
+                ${status === "Listening" ? "scale-125" : ""}
+                ${status === "Thinking" ? "scale-110 animate-pulse" : ""}
+                ${status === "Idle" ? "opacity-70" : ""}
+                `}
+              />
         </div>
 
-        {/* BUTTONS */}
+
         <div className="flex gap-3 mb-6">
           <button
             onClick={startListening}
