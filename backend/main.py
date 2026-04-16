@@ -1,12 +1,22 @@
 import sys
 import json
 import datetime
+import speech_recognition
+
 
 def process_command(cmd):
+
+    def start_recognition():
+        return "Слушаю"
+
+
     if "hello" in cmd:
         return "Hello ouou"
     elif "time" in cmd:
         return str(datetime.datetime.now())
+    if "go" in cmd:
+        cmd = start_recognition()
+        return cmd
     else:
         return "Unknown command"
 

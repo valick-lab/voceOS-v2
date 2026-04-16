@@ -4,7 +4,7 @@ declare global {
   interface Window {
     api: {
       sendCommand: (command: string) => void;
-      onResponse: (callback: (data: string) => void) => void;
+      onResponse: (callback: (data: string) => void) => (() => void);
     };
   }
 }
@@ -18,16 +18,20 @@ export default function App() {
   };
 
   useEffect(() => {
-    window.api.onResponse((data) => {
+    const unsubscribe = window.api.onResponse((data) => {
       const parsed = JSON.parse(data);
       addLog(parsed.response);
       setStatus("Idle");
     });
+    return () => {
+      unsubscribe?.();
+    };
   }, []);
 
   const startListening = () => {
     setStatus("Listening");
-    addLog("🎤 Listening...");
+    addLog("Голосовой помощник готов к работе!");
+    window.api.sendCommand("go");
   };
 
   const stopListening = () => {

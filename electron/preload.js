@@ -6,8 +6,10 @@ contextBridge.exposeInMainWorld("api", {
   },
 
   onResponse: (callback) => {
-    ipcRenderer.on("python-response", (_, data) => {
+    const listener = (_event, data) => {
       callback(data);
-    });
+    };
+    ipcRenderer.on("python-response", listener);
+    return () => ipcRenderer.removeListener("python-response", listener);
   },
 });
