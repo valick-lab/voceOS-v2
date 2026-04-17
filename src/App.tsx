@@ -10,6 +10,7 @@ declare global {
 }
 
 export default function App() {
+  const [warning, setWarning] = useState<string | null>(null);
   const [status, setStatus] = useState<"Idle" | "Listening" | "Thinking">("Idle");
   const [log, setLog] = useState<string[]>([]);
 
@@ -21,25 +22,50 @@ export default function App() {
     const unsubscribe = window.api.onResponse((data) => {
       const parsed = JSON.parse(data);
       addLog(parsed.response);
-      setStatus("Idle");
+
+      if (status !== "Listening") {
+        setStatus("Idle");
+      }
     });
+
     return () => {
       unsubscribe?.();
     };
-  }, []);
+  }, [status]);
+
+  const showWarning = (text: string) => {
+    setWarning(text);
+    setTimeout(() => setWarning(null), 3000);
+  };
 
   const startListening = () => {
+    if (status === "Listening") {
+      showWarning("Голосовой помощник уже слушает!");
+      return;
+    }
+
     setStatus("Listening");
-    addLog("Голосовой помощник готов к работе!");
-    window.api.sendCommand("go");
+    addLog("🎤 Ассистент запущен");
+    window.api.sendCommand("start");
   };
 
   const stopListening = () => {
+    if (status !== "Listening") {
+      showWarning("Ассистент уже остановлен");
+      return;
+    }
+
     setStatus("Idle");
-    addLog("⛔ Stopped");
+    addLog("⛔ Остановлен");
+    window.api.sendCommand("stop");
   };
 
   const testCommand = () => {
+    if (status === "Listening") {
+      showWarning("Остановите ассистента перед тестом");
+      return;
+    }
+
     setStatus("Thinking");
     window.api.sendCommand("hello");
   };
@@ -52,6 +78,13 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#070812] text-white">
+
+      {warning && (
+        <div className="absolute top-4 px-4 py-2 rounded-lg bg-red-500/20 border border-red-500 text-red-300 text-sm">
+          {warning}
+        </div>
+      )}
+
       <div className="w-[900px] max-w-[95%] p-6 rounded-2xl border border-purple-500/20 backdrop-blur-xl bg-[#121423]/70 shadow-[0_0_40px_rgba(124,58,237,0.3)]">
 
         <div className="flex justify-between items-center mb-6">
@@ -74,15 +107,37 @@ export default function App() {
         </div>
 
         <div className="flex gap-3 mb-6">
-          <button onClick={startListening} className="px-4 py-2 rounded-lg bg-black/40 border border-purple-500/30">Start</button>
-          <button onClick={stopListening} className="px-4 py-2 rounded-lg bg-black/40 border border-purple-500/30">Stop</button>
-          <button onClick={testCommand} className="px-4 py-2 rounded-lg bg-black/40 border border-purple-500/30">Test</button>
+          <button
+            onClick={startListening}
+            disabled={status === "Listening"}
+            className="px-4 py-2 rounded-lg bg-black/40 border border-purple-500/30 disabled:opacity-40"
+          >
+            Start
+          </button>
+
+          <button
+            onClick={stopListening}
+            className="px-4 py-2 rounded-lg bg-black/40 border border-purple-500/30"
+          >
+            Stop
+          </button>
+
+          <button
+            onClick={testCommand}
+            className="px-4 py-2 rounded-lg bg-black/40 border border-purple-500/30"
+          >
+            Test
+          </button>
         </div>
 
         <div className="p-4 rounded-xl bg-black/40 border border-purple-500/20">
           <h2 className="mb-2 text-sm text-purple-300">Activity</h2>
           <div className="text-xs text-gray-400 max-h-[200px] overflow-y-auto space-y-1">
-            {log.length === 0 ? <p className="opacity-50">No activity</p> : log.map((item, i) => <p key={i}>{item}</p>)}
+            {log.length === 0 ? (
+              <p className="opacity-50">No activity</p>
+            ) : (
+              log.map((item, i) => <p key={i}>{item}</p>)
+            )}
           </div>
         </div>
 
