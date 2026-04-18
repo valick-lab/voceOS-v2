@@ -1,3 +1,4 @@
+from email.mime import text
 import os
 import sys
 import json
@@ -7,6 +8,8 @@ import pyaudio
 import wave
 import threading
 import time
+from commands import hello
+
 
 CHUNK = 1024
 FORMAT = pyaudio.paInt16
@@ -93,17 +96,24 @@ def command_reader():
 
 
 def recording_loop():
+    
     while True:
         loop_event.wait()
         if not stats:
             continue
 
         record_audio()
-        text = recognize_audio()
-        print(json.dumps({"response": text}))
+        from core.handle import handle
+        
 
-        if "привет" in text():
-            print(json.dumps({"response": "ПРИВЕЕЕЕТ!"}))
+        text = recognize_audio()
+        response = handle(text)
+
+        if response:
+            print(json.dumps({"response": response}))
+        else:
+            print(json.dumps({"response": text}))
+
         sys.stdout.flush()
 
         if not stats:
