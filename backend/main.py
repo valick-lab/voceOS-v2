@@ -9,6 +9,7 @@ import wave
 import threading
 import time
 from commands import hello
+from core.handle import handle
 
 
 CHUNK = 1024
@@ -103,7 +104,7 @@ def recording_loop():
             continue
 
         record_audio()
-        from core.handle import handle
+        
         
 
         text = recognize_audio()
