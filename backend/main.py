@@ -68,18 +68,18 @@ def process_command(cmd):
     normalized = str(cmd).strip().lower()
     if "start" in normalized:
         if stats:
-            return "Цикл записи уже запущен"
+            return "Цикл записи уже запущен", None
         stats = True
         loop_event.set()
-        return "Запись началась"
+        return "Запись началась", "Listening"
     elif "stop" in normalized:
         if not stats:
-            return "Цикл записи уже остановлен"
+            return "Цикл записи уже остановлен", None
         stats = False
         loop_event.clear()
-        return "Остановлено"
+        return "Остановлено", "Idle"
     else:
-        return "Пожалуйста, попробуйте ещё раз"
+        return "Пожалуйста, попробуйте ещё раз", None
 
 
 def command_reader():
@@ -87,8 +87,11 @@ def command_reader():
         try:
             data = json.loads(line)
             command = data.get("command", "")
-            result = process_command(command)
-            print(json.dumps({"response": result}))
+            result, status = process_command(command)
+            payload = {"response": result}
+            if status:
+                payload["status"] = status
+            print(json.dumps(payload))
             sys.stdout.flush()
         except Exception as e:
             print(json.dumps({"response": f"ERROR: {str(e)}"}))
@@ -104,17 +107,15 @@ def recording_loop():
             continue
 
         record_audio()
-        
-        
+        print(json.dumps({"status": "Thinking"}))
+        sys.stdout.flush()
 
         text = recognize_audio()
         response = handle(text)
 
-        if response:
-            print(json.dumps({"response": response}))
-        else:
-            print(json.dumps({"response": text}))
-
+        payload = {"response": response if response else text}
+        payload["status"] = "Listening" if stats else "Idle"
+        print(json.dumps(payload))
         sys.stdout.flush()
 
         if not stats:

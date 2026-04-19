@@ -18,12 +18,24 @@ export default function App() {
     setLog((prev) => [...prev, text]);
   };
 
+  const sendCommand = (command: string, nextStatus?: "Idle" | "Listening" | "Thinking") => {
+    if (nextStatus) {
+      setStatus(nextStatus);
+    }
+    window.api.sendCommand(command);
+  };
+
   useEffect(() => {
     const unsubscribe = window.api.onResponse((data) => {
       const parsed = JSON.parse(data);
-      addLog(parsed.response);
 
-      if (status !== "Listening") {
+      if (parsed.status) {
+        setStatus(parsed.status);
+      }
+
+      if (parsed.response) {
+        addLog(parsed.response);
+      } else if (!parsed.status && status === "Thinking") {
         setStatus("Idle");
       }
     });
@@ -44,9 +56,8 @@ export default function App() {
       return;
     }
 
-    setStatus("Listening");
+    sendCommand("start", "Listening");
     addLog("🎤 Ассистент запущен");
-    window.api.sendCommand("start");
   };
 
   const stopListening = () => {
@@ -55,9 +66,8 @@ export default function App() {
       return;
     }
 
-    setStatus("Idle");
+    sendCommand("stop", "Idle");
     addLog("⛔ Остановлен");
-    window.api.sendCommand("stop");
   };
 
   const testCommand = () => {
@@ -66,8 +76,7 @@ export default function App() {
       return;
     }
 
-    setStatus("Thinking");
-    window.api.sendCommand("hello");
+    sendCommand("hello", "Thinking");
   };
 
   const statusStyle = {
