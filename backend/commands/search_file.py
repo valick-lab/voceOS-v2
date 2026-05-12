@@ -20,7 +20,7 @@ def handle_search(text: str):
     search_query = text.strip()
     drives = []
     for letter in string.ascii_uppercase:
-        drive = letter + ":\\"
+        drive = letter + " :\\"
         if os.path.exists(drive):
             drives.append(drive)
     
